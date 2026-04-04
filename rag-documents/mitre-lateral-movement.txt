@@ -1,0 +1,159 @@
+MITRE ATT&CK Framework - Lateral Movement (TA0008)
+===================================================
+
+Lateral Movement encompasses techniques adversaries use to progressively move through a network environment after gaining initial access. The goal is to reach high-value targets, expand access, and position for data collection or impact objectives.
+
+---
+
+T1021 - Remote Services
+------------------------
+Adversaries use legitimate remote access services to move laterally between systems.
+
+Sub-techniques:
+- T1021.001 - Remote Desktop Protocol (RDP): Using Windows Remote Desktop to access systems. Requires valid credentials or exploiting vulnerabilities. Commonly used by ransomware operators.
+  Tools: built-in mstsc.exe, FreeRDP, Remmina
+
+- T1021.002 - SMB/Windows Admin Shares: Using Server Message Block protocol to access administrative shares (C$, ADMIN$, IPC$).
+  Tools: PsExec, wmic, sc.exe, Impacket (smbexec, psexec.py)
+
+- T1021.003 - Distributed Component Object Model (DCOM): Abusing DCOM interfaces for remote execution.
+  Tools: Invoke-DCOM PowerShell module
+
+- T1021.004 - SSH: Using Secure Shell for lateral movement in Unix/Linux environments. Common in cloud environments.
+
+- T1021.005 - VNC: Virtual Network Computing for graphical remote access. Often installed as persistence mechanism.
+
+- T1021.006 - Windows Remote Management (WinRM): Using WinRM/PowerShell Remoting for remote command execution.
+  Tools: Enter-PSSession, Invoke-Command, Evil-WinRM
+
+Detection: Authentication logs for remote service connections, lateral movement between workstations (unusual), service installations on remote systems via SMB, Sysmon EventID 3 (network connections).
+
+Mitigation: Restrict RDP access (firewall rules, jump hosts), disable SMB admin shares where not needed, enforce network segmentation, MFA for remote services.
+
+Procedure Examples:
+- NotPetya ransomware used SMB/PsExec for rapid lateral movement across entire networks.
+- Ryuk ransomware operators used RDP extensively for interactive lateral movement.
+- APT29 used WinRM/PowerShell Remoting in the SolarWinds campaign.
+
+---
+
+T1550 - Use Alternate Authentication Material
+----------------------------------------------
+Using alternative authentication mechanisms that bypass standard credential requirements.
+
+Sub-techniques:
+- T1550.001 - Application Access Token: Using OAuth tokens, API keys, or service account tokens to authenticate to cloud services and APIs.
+
+- T1550.002 - Pass the Hash (PtH): Using NTLM password hashes directly for authentication without cracking them. The hash is functionally equivalent to the password in NTLM authentication.
+  Tools: Mimikatz (sekurlsa::pth), Impacket, CrackMapExec
+  Affected protocols: SMB, WMI, WinRM (with NTLM auth)
+
+- T1550.003 - Pass the Ticket (PtT): Injecting Kerberos tickets into a session to authenticate as a different user.
+  Tools: Mimikatz (kerberos::ptt), Rubeus
+
+- T1550.004 - Web Session Cookie: Using stolen browser cookies to authenticate to web applications without credentials.
+
+Detection: Event ID 4624 with LogonType 3 and NTLM authentication from unexpected accounts, unusual Kerberos ticket usage patterns.
+
+Mitigation: Windows Credential Guard (prevents PtH by not exposing NTLM hashes), SMB signing to prevent relay attacks, network segmentation.
+
+---
+
+T1534 - Internal Spearphishing
+--------------------------------
+After compromising an account, adversaries send phishing messages from legitimate internal accounts to other users in the organization. The phishing is more convincing because it comes from a trusted colleague.
+
+Variants:
+- Email phishing from compromised internal email account
+- Messaging platform phishing via Teams, Slack, etc.
+- Calendar meeting invites with malicious links
+
+Detection: Anomalous email sending patterns (volume, recipients, attachments), behavioral analytics on email accounts.
+
+Mitigation: Zero-trust model within organization, email security monitoring even for internal traffic.
+
+---
+
+T1080 - Taint Shared Content
+------------------------------
+Adversaries deliver malicious content by modifying files in shared locations (network file shares, SharePoint, code repositories, cloud storage).
+
+When other users access or execute the tainted content, the adversary can gain access to additional systems.
+
+Examples:
+- Replacing DLLs or executables in network shares
+- Adding malicious macros to shared Office documents
+- Backdooring shared scripts in version control
+
+Detection: File integrity monitoring on shared resources, unexpected modification of executables/scripts.
+
+Mitigation: Least privilege on shared drives, file integrity monitoring, separate write/execute permissions.
+
+---
+
+T1210 - Exploitation of Remote Services
+-----------------------------------------
+Adversaries exploit vulnerabilities in internal network services to move laterally. Unlike initial access exploitation, this targets internal-facing services.
+
+Common targets:
+- EternalBlue (MS17-010 / CVE-2017-0144) - SMB vulnerability used by WannaCry and NotPetya
+- BlueKeep (CVE-2019-0708) - RDP pre-authentication vulnerability
+- PrintNightmare (CVE-2021-1675/34527) - Windows Print Spooler
+- ZeroLogon (CVE-2020-1472) - Netlogon privilege escalation to domain controller
+
+Detection: Network-based intrusion detection, vulnerability scanning, event logs showing authentication failures preceding successes.
+
+Mitigation: Regular patching, network segmentation to limit blast radius, host-based IDS, disabling unnecessary services.
+
+---
+
+T1563 - Remote Service Session Hijacking
+------------------------------------------
+Adversaries steal existing remote service sessions to gain unauthorized access.
+
+Sub-techniques:
+- T1563.001 - SSH Hijacking: Hijacking SSH agent or existing SSH connections. SSH agent forwarding can be abused to pivot through compromised hosts.
+- T1563.002 - RDP Hijacking: Using tscon.exe (Windows) to attach to another user's active RDP session without credentials when running as SYSTEM.
+
+Detection: Monitoring for tscon.exe execution, unusual SSH connection patterns.
+
+Mitigation: Disable SSH agent forwarding where not needed, monitor remote session activity.
+
+---
+
+T1570 - Lateral Tool Transfer
+-------------------------------
+Adversaries transfer tools or malware from one system to another in the target network to support their operations.
+
+Methods:
+- SMB file share transfers
+- RDP clipboard/file transfer
+- impacket smbclient/smbserver
+- Certutil.exe to download files (LOLBAS)
+- Bitsadmin transfers
+- PowerShell Invoke-WebRequest or Start-BitsTransfer
+
+Detection: Monitor for large file transfers over SMB, unexpected use of certutil, bitsadmin, or PowerShell for file transfers.
+
+Mitigation: Egress filtering, application whitelisting, DLP solutions monitoring lateral file movement.
+
+---
+
+Lateral Movement Detection Strategy
+-------------------------------------
+Key indicators to monitor across all lateral movement techniques:
+
+1. Authentication telemetry:
+   - Event ID 4624 (successful logon) - filter for Type 3 (network) and Type 10 (remote interactive)
+   - Event ID 4625 (failed logon) preceding successes
+   - Authentication from service accounts to workstations
+
+2. Network telemetry:
+   - East-west traffic between workstations (workstation-to-workstation is unusual)
+   - Connections on SMB (445), RDP (3389), WinRM (5985/5986), SSH (22)
+   - Beaconing patterns from internal hosts
+
+3. Endpoint telemetry:
+   - Unusual process creations from remote connections
+   - psexesvc.exe or remcom_svc.exe (PsExec artifacts)
+   - Sysmon EventID 1/3 for remote access tool behavior

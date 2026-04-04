@@ -1,0 +1,119 @@
+MITRE ATT&CK Framework - Initial Access (TA0001)
+==================================================
+
+The Initial Access tactic represents the techniques adversaries use to gain an initial foothold within a network or system. This is the first step in the attack lifecycle, where threat actors attempt to enter the target environment.
+
+---
+
+T1566 - Phishing
+-----------------
+Phishing is one of the most common initial access techniques. Adversaries send deceptive electronic messages, typically email, to trick users into revealing credentials or executing malicious payloads.
+
+Sub-techniques:
+- T1566.001 - Spearphishing Attachment: Adversaries send emails with malicious attachments. These attachments often appear as legitimate documents (PDFs, Office files, archives) but contain macros, exploits, or embedded malware.
+- T1566.002 - Spearphishing Link: Adversaries embed malicious URLs in emails that lead to credential harvesting pages or drive-by download sites. Links may use URL shorteners or typosquatted domains.
+- T1566.003 - Spearphishing via Service: Attacks through third-party services such as social media, messaging apps (Slack, Teams), or collaboration platforms.
+- T1566.004 - Spearphishing Voice: Vishing (voice phishing) where adversaries call targets posing as IT support, vendors, or executives to trick users into providing credentials or running commands.
+
+Detection: Monitor for unusual email sender patterns, suspicious attachment types (.exe, .lnk, .xlsm, .docm), and user reports of suspicious messages. Email gateways should scan attachments in sandboxes.
+
+Mitigation: User awareness training, multi-factor authentication, email filtering with attachment sandboxing, anti-phishing browser extensions, SPF/DKIM/DMARC email authentication.
+
+Procedure Examples:
+- APT28 (Fancy Bear) used spearphishing with malicious Word documents in attacks on government agencies.
+- FIN7 sent fake restaurant reservation requests with malicious Excel attachments.
+- Lazarus Group used COVID-19 themed phishing to target research organizations.
+
+---
+
+T1190 - Exploit Public-Facing Application
+-------------------------------------------
+Adversaries exploit weaknesses in internet-facing applications such as web servers, databases, VPNs, email servers, and remote management interfaces.
+
+Common targets include:
+- Web application vulnerabilities (SQL injection, XSS, deserialization flaws)
+- VPN gateway vulnerabilities (Pulse Secure, Fortinet, Citrix ADC/Gateway)
+- Exchange Server vulnerabilities (ProxyLogon - CVE-2021-26855, ProxyShell)
+- Apache Log4j (Log4Shell - CVE-2021-44228)
+- Atlassian Confluence/JIRA vulnerabilities
+
+Detection: Web application firewall (WAF) alerts, anomalous HTTP request patterns, error logs showing exploitation attempts, unexpected outbound connections from web servers.
+
+Mitigation: Timely patch management, web application firewalls, network segmentation, disabling unnecessary services, regular vulnerability scanning.
+
+Procedure Examples:
+- Multiple threat actors exploited Citrix ADC (CVE-2019-19781) in 2020 to gain access to corporate networks.
+- Hafnium exploited Exchange Server zero-days in 2021, affecting over 250,000 servers worldwide.
+- UNC2452 (SolarWinds attackers) accessed Pulse Secure VPN to move through target environments.
+
+---
+
+T1133 - External Remote Services
+----------------------------------
+Adversaries leverage legitimate remote access services—VPNs, Remote Desktop Protocol (RDP), SSH, Citrix—that are exposed to the internet. They authenticate using valid or compromised credentials.
+
+This technique differs from exploitation because adversaries use legitimate protocols. After obtaining credentials via phishing, data breaches, or password spraying, they authenticate normally.
+
+Detection: Authentication logs showing logins from unexpected IP addresses, times, or geolocations. Multiple failed logins followed by success. Logins outside business hours.
+
+Mitigation: Multi-factor authentication (MFA) on all remote access, IP allowlisting, VPN with certificate-based authentication, conditional access policies.
+
+---
+
+T1078 - Valid Accounts
+-----------------------
+Using compromised credentials (from phishing, credential stuffing, or prior breaches) to authenticate to systems. This is often combined with other techniques.
+
+Sub-techniques:
+- T1078.001 - Default Accounts: Using factory-default credentials on devices/services.
+- T1078.002 - Domain Accounts: Using Active Directory credentials.
+- T1078.003 - Local Accounts: Using local OS accounts.
+- T1078.004 - Cloud Accounts: Using cloud service credentials (AWS, Azure, GCP, SaaS).
+
+Detection: Unusual authentication times/locations, credential use on systems the account doesn't normally access, simultaneous logins from different locations.
+
+Mitigation: Credential hygiene (change defaults, disable unused accounts), MFA, privileged access management (PAM), monitoring with SIEM.
+
+---
+
+T1195 - Supply Chain Compromise
+---------------------------------
+Adversaries compromise software or hardware before it reaches the end user. This can affect software update mechanisms, development tools, or hardware components.
+
+Notable examples:
+- SolarWinds Orion (SUNBURST malware inserted into build process, 2020)
+- CCleaner (malicious version distributed through official channels, 2017)
+- NotPetya (disguised as MeDoc accounting software update, 2017)
+
+Sub-techniques:
+- T1195.001 - Compromise Software Dependencies: Poisoning open-source packages or libraries.
+- T1195.002 - Compromise Software Supply Chain: Inserting malicious code during development/build.
+- T1195.003 - Compromise Hardware Supply Chain: Hardware implants added before delivery.
+
+Detection: File integrity monitoring, software bill of materials (SBOM), code signing verification, behavioral monitoring of newly installed software.
+
+Mitigation: Verify software integrity via hash comparison, use trusted repositories, implement code signing, vendor security assessments.
+
+---
+
+T1091 - Replication Through Removable Media
+---------------------------------------------
+Adversaries use USB drives, optical discs, or other removable media to introduce malware into air-gapped or isolated systems. Often used in ICS/SCADA environments.
+
+The STUXNET worm propagated via USB drives to reach air-gapped Iranian nuclear facilities. Conficker also spread via AutoRun on USB drives.
+
+Detection: Monitor for new removable media connections, unusual file copies to/from removable media, execution of files from removable drives.
+
+Mitigation: Disable AutoRun/AutoPlay, USB port restrictions via Group Policy or endpoint security tools, physical security controls.
+
+---
+
+T1189 - Drive-by Compromise
+-----------------------------
+Adversaries gain access when a user visits a compromised or malicious website. The site exploits browser or browser plugin vulnerabilities to execute code.
+
+Watering hole attacks compromise legitimate websites likely to be visited by targets. Malvertising uses ad networks to distribute malicious code.
+
+Detection: Browser security tools, DNS filtering to block known malicious domains, network monitoring for connections to C2 infrastructure.
+
+Mitigation: Keep browsers and plugins patched, use browser sandboxing, content security policies, ad blockers for corporate environments.

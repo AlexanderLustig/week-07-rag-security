@@ -1,0 +1,205 @@
+NIST Cybersecurity Framework (CSF) 2.0
+=======================================
+
+The NIST Cybersecurity Framework (CSF) provides a policy framework of computer security guidance for how private sector organizations in the United States can assess and improve their ability to prevent, detect, and respond to cyber attacks. CSF 2.0, released in February 2024, adds a sixth function: Govern.
+
+---
+
+FUNCTION 1: GOVERN (GV) - New in CSF 2.0
+------------------------------------------
+The Govern function addresses how an organization's cybersecurity risk management strategy, expectations, and policy are established, communicated, and monitored.
+
+GV.OC - Organizational Context:
+The organization's mission, stakeholder expectations, legal and regulatory requirements, and threat landscape are understood and inform cybersecurity risk management.
+
+Key outcomes:
+- Mission objectives, stakeholder expectations, legal/regulatory/contractual requirements informing cyber risk management are understood
+- Internal and external stakeholders with interest in cybersecurity risk are identified and engaged
+- Cybersecurity roles, responsibilities, and authorities are established
+
+GV.RM - Risk Management Strategy:
+The organization's priorities, constraints, risk tolerance and appetite statements, and assumptions are documented and used to support operational risk decisions.
+
+GV.SC - Cybersecurity Supply Chain Risk Management:
+Cyber supply chain risk management processes are identified, established, managed, monitored, and improved.
+
+---
+
+FUNCTION 2: IDENTIFY (ID)
+---------------------------
+The Identify function develops an organizational understanding to manage cybersecurity risk to systems, people, assets, data, and capabilities.
+
+ID.AM - Asset Management:
+Assets (data, hardware, software, systems, facilities, services, people) are identified and managed consistent with their importance to organizational objectives and the organization's risk strategy.
+
+Key practices:
+- Maintain a complete inventory of hardware and software assets
+- Map data flows and information systems
+- Identify external systems and vendor relationships
+- Prioritize assets based on business criticality
+
+ID.RA - Risk Assessment:
+The organization identifies, estimates, and prioritizes risk to organizational operations, assets, individuals, and the nation.
+
+Risk assessment steps:
+1. Identify threats (adversarial, accidental, structural, environmental)
+2. Identify vulnerabilities (technical, operational, procedural)
+3. Determine likelihood of exploitation
+4. Determine potential impact
+5. Determine risk = likelihood × impact
+6. Prioritize based on organizational risk tolerance
+
+ID.IM - Improvement:
+Improvements to organizational cybersecurity risk management processes, procedures, and activities are identified across all CSF Functions.
+
+---
+
+FUNCTION 3: PROTECT (PR)
+--------------------------
+The Protect function supports the ability to limit or contain the impact of a potential cybersecurity event through safeguards.
+
+PR.AA - Identity Management, Authentication, and Access Control:
+Access to physical and logical assets is limited to authorized users, services, and hardware, and is managed commensurate with the assessed risk.
+
+Key controls:
+- Multi-factor authentication (MFA) for all privileged access
+- Role-based access control (RBAC) implementing least privilege
+- Privileged access management (PAM) solutions
+- Identity governance and access reviews
+- Zero Trust Architecture principles
+
+PR.AT - Awareness and Training:
+The organization's personnel are provided with cybersecurity awareness and training so they can perform their cybersecurity-related tasks.
+
+Effective training components:
+- Security awareness training for all employees (minimum annually)
+- Role-specific training for IT and security staff
+- Phishing simulation exercises
+- Incident response tabletop exercises
+
+PR.DS - Data Security:
+Data are managed consistent with the organization's risk strategy to protect the confidentiality, integrity, and availability of information.
+
+Data protection controls:
+- Data classification (Public, Internal, Confidential, Restricted)
+- Encryption at rest and in transit (AES-256, TLS 1.2+)
+- Data loss prevention (DLP) tools
+- Backup and recovery procedures (3-2-1 backup rule)
+- Secure disposal of data and media
+
+PR.PS - Platform Security:
+The hardware, software (including firmware), and services of physical and virtual platforms are managed consistent with the organization's risk strategy.
+
+Controls:
+- Configuration management and secure baselines (CIS Benchmarks)
+- Patch management program with defined SLAs
+- Vulnerability management program
+- Application whitelisting/allowlisting
+- Endpoint Detection and Response (EDR) deployment
+
+PR.IR - Technology Infrastructure Resilience:
+Security architectures are managed with the organization's risk strategy to protect asset confidentiality, integrity, and availability, and organizational resilience.
+
+---
+
+FUNCTION 4: DETECT (DE)
+------------------------
+The Detect function enables timely discovery of cybersecurity events.
+
+DE.CM - Continuous Monitoring:
+Assets are monitored to find anomalies, indicators of compromise, and other potentially adverse events.
+
+Monitoring capabilities required:
+- Security Information and Event Management (SIEM) system
+- Network Detection and Response (NDR)
+- Endpoint Detection and Response (EDR)
+- User and Entity Behavior Analytics (UEBA)
+- Cloud Security Posture Management (CSPM)
+
+Key log sources:
+- Authentication events (Windows Event Logs, Azure AD, Okta)
+- Network flows and DNS logs
+- Endpoint telemetry (Sysmon, EDR agents)
+- Cloud audit logs (AWS CloudTrail, Azure Monitor)
+- Application logs
+
+DE.AE - Adverse Event Analysis:
+Anomalies, indicators of compromise, and other potentially adverse events are analyzed to characterize the events and detect cybersecurity incidents.
+
+Mean Time to Detect (MTTD) is a key metric. Industry average is ~207 days; best-in-class organizations detect within hours.
+
+---
+
+FUNCTION 5: RESPOND (RS)
+--------------------------
+The Respond function supports the ability to contain the impact of a cybersecurity incident.
+
+RS.MA - Incident Management:
+Responses to detected cybersecurity incidents are managed.
+
+Incident response lifecycle (NIST SP 800-61):
+1. Preparation
+2. Detection and Analysis
+3. Containment, Eradication, and Recovery
+4. Post-Incident Activity
+
+RS.AN - Incident Analysis:
+Investigations are conducted to ensure effective response and support forensics and recovery activities.
+
+Forensic principles:
+- Preserve chain of custody
+- Document all actions taken
+- Collect volatile evidence first (memory, running processes)
+- Use write blockers when imaging storage media
+- Maintain integrity with cryptographic hashing (SHA-256)
+
+RS.CO - Incident Response Reporting and Communication:
+Response activities are coordinated with internal and external stakeholders as required by laws, regulations, or policies.
+
+Communication requirements:
+- Internal escalation procedures
+- Board/executive notifications for material incidents
+- Regulatory notifications (GDPR 72-hour, SEC 4-day material disclosure)
+- Law enforcement notification (FBI, CISA)
+- Customer notification if personal data affected
+
+RS.MI - Incident Mitigation:
+Activities are performed to prevent expansion of an event and mitigate its effects.
+
+---
+
+FUNCTION 6: RECOVER (RC)
+--------------------------
+The Recover function supports the ability to restore assets and operations that were impacted by a cybersecurity incident.
+
+RC.RP - Incident Recovery Plan Execution:
+Restoration activities are performed to ensure operational availability.
+
+Recovery objectives:
+- Recovery Time Objective (RTO): Maximum acceptable downtime
+- Recovery Point Objective (RPO): Maximum acceptable data loss
+- Business Impact Analysis drives RTO/RPO targets
+
+RC.CO - Incident Recovery Communication:
+Restoration activities are coordinated with internal and external parties.
+
+Key recovery steps:
+1. Verify threat is fully eradicated before restoring
+2. Restore from clean backups (verify integrity)
+3. Reimage compromised systems rather than attempting to clean
+4. Reset all potentially compromised credentials
+5. Review and improve defenses before returning to normal operations
+6. Conduct post-incident review (PIR) / lessons learned
+
+---
+
+Implementation Tiers
+---------------------
+CSF defines four implementation tiers reflecting the rigor and sophistication of an organization's cybersecurity risk management:
+
+Tier 1 - Partial: Ad hoc risk management, limited awareness of cybersecurity risk
+Tier 2 - Risk Informed: Risk management practices approved by management but not organization-wide
+Tier 3 - Repeatable: Formally approved risk management policies with consistent implementation
+Tier 4 - Adaptive: Organization adapts cybersecurity practices based on lessons learned and predictive indicators
+
+Most organizations should target Tier 3 or higher. Tier 4 is appropriate for critical infrastructure and high-risk environments.
